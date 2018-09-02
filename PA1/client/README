@@ -1,0 +1,8 @@
+- client is written in python3: `agent.py`
+
+- usage: agent.py [-h] [--numArms N] [--randomSeed R] [--horizon T]
+                [--hostname <ip>] [--port p] [--algorithm A] [--epsilon e]
+
+- please don't put `&` without space after epsilon value like
+    `cmd="./startclient.sh $numArms $horizon $hostname $port $randomSeed $algorithm $epsilon&"`
+    - this will take (if $epsilon=0.25) '0.25&' as epsilon value instead of 0.25
