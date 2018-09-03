@@ -52,7 +52,10 @@ class MDP():
         self.discount = float(lines[line_id])
         self.type = lines[line_id + 1]
 
-    def solve_lp(self):
+    def solve_LP(self):
+        """
+        solve MDP using linear programming methodxz
+        """
 
         # create `prob` variable
         prob = LpProblem("MDP", LpMinimize)
@@ -98,13 +101,72 @@ class MDP():
         self.values = [V[x].varValue for x in range(self.S)]
         self.pi = pi
 
+    def _policy_eval(self, policy, eps=1e-6):
+        """
+        policy: policy[s] corresponds to action at state `s`
+        """
+        V = [0 for _ in range(self.S)]
+
+        while True:
+            delta = 0
+            for s in range(self.S):
+                a = policy[s]
+                v = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
+                        for x in range(self.S)])
+
+                delta = max(delta, abs(v - V[s]))
+                V[s] = v
+
+            if delta < eps:
+                break
+
+        return V
+
+    def solve_PI(self):
+        """
+        solve MDP using policy iteration method
+        """
+
+        policy = [0 for _ in range(self.S)]  # initial policy
+        V = [0 for _ in range(self.S)]
+        iterations = 0
+        # print('[iter %d]' % (iterations))
+
+        while True:
+            policy_stable = True
+            iterations += 1
+
+            for s in range(self.S):
+                a = policy[s]
+                V[s] = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
+                           for x in range(self.S)])
+
+            for s in range(self.S):
+                q_best = V[s]
+                for a in range(self.A):
+                    q = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
+                            for x in range(self.S)])
+                    if q > q_best:
+                        policy[s] = a
+                        q_best = q
+                        policy_stable = False
+
+            if policy_stable:
+                # print('achieved a stable policy.')
+                break
+
+        self.values = V
+        self.pi = policy
+
     def print(self):
         for s in range(self.S):
             print("%0.8f\t%d" % (self.values[s], self.pi[s]))
 
 
 m = MDP()
-file_path = '/Users/vinayakvivek/pro/acads/SEM7/cs747/PA2/data/continuing/MDP10.txt'
+# file_path = '/Users/vinayakvivek/pro/acads/SEM7/cs747/PA2/data/continuing/MDP10.txt'
+file_path = '/Users/vinayakvivek/pro/acads/SEM7/cs747/PA2/data/episodic/MDP2.txt'
 m.read_from_file(file_path)
-m.solve_lp()
+# m.solve_lp()
+m.solve_PI()
 m.print()
