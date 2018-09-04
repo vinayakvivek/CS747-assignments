@@ -3,6 +3,7 @@ from copy import deepcopy
 from pulp import LpProblem, LpMinimize, LpVariable,\
     LpStatus, value, LpStatusOptimal
 import numpy as np
+import argparse
 
 
 def clean_line(line):
@@ -163,10 +164,24 @@ class MDP():
             print("%0.8f\t%d" % (self.values[s], self.pi[s]))
 
 
-m = MDP()
-# file_path = '/Users/vinayakvivek/pro/acads/SEM7/cs747/PA2/data/continuing/MDP10.txt'
-file_path = '/Users/vinayakvivek/pro/acads/SEM7/cs747/PA2/data/episodic/MDP2.txt'
-m.read_from_file(file_path)
-# m.solve_lp()
-m.solve_PI()
-m.print()
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='MDP parser and solver.')
+    parser.add_argument('--algorithm',
+                        metavar='A',
+                        help='MDP algorithm',
+                        choices=['lp', 'hpi'])
+    parser.add_argument('--mdp',
+                        metavar='file_path',
+                        help='absolute path to MDP file')
+    args = parser.parse_args()
+
+    m = MDP()
+    m.read_from_file(args.mdp)
+
+    if args.algorithm == 'lp':
+        m.solve_LP()
+    elif args.algorithm == 'hpi':
+        m.solve_PI()
+
+    m.print()

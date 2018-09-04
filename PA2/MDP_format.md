@@ -1,6 +1,6 @@
-Number of states
-Number of actions
-Reward function
-Transition function
-Discount factor
-Type
+- Number of states [`S`]
+- Number of actions [`A`]
+- Reward function [`S * A` lines]
+- Transition function [`S * A` lines]
+- Discount factor [`𝛾`]
+- Type [`continuing` or `episodic`]
