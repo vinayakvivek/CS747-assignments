@@ -1,12 +1,5 @@
 #!/bin/sh
 
-#
-# a simple way to parse shell script arguments
-#
-# please edit and use to your hearts content
-#
-
-
 MDP_PATH="<absolute_path>"
 MDP_ALGORITHM="<lp/hpi>"
 
@@ -45,4 +38,4 @@ while [ "$1" != "" ]; do
     shift
 done
 
-python3 mdp.py --mdp $MDP_PATH --algorithm $MDP_ALGORITHM
+python3 extras/mdp.py --mdp $MDP_PATH --algorithm $MDP_ALGORITHM

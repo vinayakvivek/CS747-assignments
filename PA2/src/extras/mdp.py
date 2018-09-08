@@ -4,6 +4,15 @@ from pulp import LpProblem, LpMinimize, LpVariable,\
     LpStatus, value, LpStatusOptimal
 import numpy as np
 import argparse
+import sys
+import logging
+
+
+logging.basicConfig(
+    format='[%(levelname)s][%(asctime)s]: %(message)s',
+    datefmt="%H:%M:%S",
+    level=logging.INFO
+)
 
 
 def clean_line(line):
@@ -107,6 +116,7 @@ class MDP():
         policy: policy[s] corresponds to action at state `s`
         """
         V = [0 for _ in range(self.S)]
+        logging.debug('evaluating policy.')
 
         while True:
             delta = 0
@@ -123,7 +133,7 @@ class MDP():
 
         return V
 
-    def solve_PI(self):
+    def solve_PI(self, max_iter=100, eps=1e-6):
         """
         solve MDP using policy iteration method
         """
@@ -133,27 +143,33 @@ class MDP():
         iterations = 0
         # print('[iter %d]' % (iterations))
 
-        while True:
+        while True and iterations < max_iter:
             policy_stable = True
             iterations += 1
+            logging.info('iter: %d' % (iterations))
+            improved_states = []
 
-            for s in range(self.S):
-                a = policy[s]
-                V[s] = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
-                           for x in range(self.S)])
+            # for s in range(self.S):
+            #     a = policy[s]
+            #     V[s] = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
+            #                for x in range(self.S)])
+            V = self._policy_eval(policy, eps)
 
             for s in range(self.S):
                 q_best = V[s]
                 for a in range(self.A):
                     q = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
                             for x in range(self.S)])
-                    if q > q_best:
+                    if q > q_best and abs(q - q_best) > eps:
+                        improved_states.append((s, q_best, q))
                         policy[s] = a
                         q_best = q
                         policy_stable = False
 
+            # logging.debug('improved_states: %s' % (str(improved_states)))
+
             if policy_stable:
-                # print('achieved a stable policy.')
+                logging.debug('achieved a stable policy.')
                 break
 
         self.values = V
