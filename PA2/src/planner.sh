@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MDP_PATH="<absolute_path>"
 MDP_ALGORITHM="<lp/hpi>"
