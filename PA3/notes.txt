@@ -1,0 +1,2 @@
+- implemented TD(0) algorithm (in td.py)
+- no extra libraries are used
