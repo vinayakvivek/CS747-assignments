@@ -11,13 +11,12 @@ import logging
 logging.basicConfig(
     format='[%(levelname)s][%(asctime)s]: %(message)s',
     datefmt="%H:%M:%S",
-    level=logging.INFO
+    level=logging.ERROR
 )
 
 
 def clean_line(line):
-    line = re.sub(' +', '', line)
-    line = line.split('\t')
+    line = line.split()
     line = [float(x) for x in line]
     return line
 
@@ -85,6 +84,20 @@ class MDP():
                 c = sum([self.t_probs[s][a][x] * (self.rewards[s][a][x] + self.discount * V[x])\
                          for x in range(self.S)])
                 prob += V[s] - c >= 0, "c_%d_%d" % (s, a)
+
+        if self.type == 'episodic':
+            # find terminal states
+            for s in range(self.S):
+                is_terminal = True
+                for a in range(self.A):
+                    for x in range(self.S):
+                        if x != s and self.t_probs[s][a][x] > 0:
+                            is_terminal = False
+                            break
+                    if not is_terminal:
+                        break
+                if is_terminal:
+                    prob += V[s] == 0
 
         # # write problem to a .lp file
         # prob.writeLP("MDP.lp")
