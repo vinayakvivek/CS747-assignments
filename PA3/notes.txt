@@ -1,2 +1,5 @@
-- implemented TD(0) algorithm (in td.py)
+- implemented model based algorithm
+    - using the experiences estimated transition probabilities(T), rewards(R) and policy (pi)
+    - estimated value function using the above estimates (policy evaluation).
+- model based algorithms work better when number of states and actions are low, as in given test cases.
 - no extra libraries are used
