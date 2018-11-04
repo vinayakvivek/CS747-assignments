@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from copy import deepcopy
 import logging
-from utils import W, N, E, S
+from utils import W, N, E, S, NE, NW, SE, SW
 
 
 logger = logging.getLogger(__name__)
@@ -63,14 +63,28 @@ class WindyGrid:
 
         next_state = deepcopy(self.curr_state)
 
-        if action == W and self.curr_state[0] > 0:
-            next_state[0] -= 1
-        elif action == N and (self.curr_state[0] + 1) < self.length:
-            next_state[0] += 1
-        elif action == E and self.curr_state[1] > 0:
-            next_state[1] -= 1
-        elif action == S and (self.curr_state[1] + 1) < self.breadth:
-            next_state[1] += 1
+        if action == W:
+            next_state[0] = max(0, self.curr_state[0] - 1)
+        elif action == E:
+            next_state[0] = min(self.curr_state[0] + 1, self.length - 1)
+        elif action == N:
+            next_state[1] = min(self.curr_state[1] + 1, self.breadth - 1)
+        elif action == S:
+            next_state[1] = max(0, self.curr_state[1] - 1)
+
+        if self.king_move:
+            if action == NW:
+                next_state[0] = max(0, self.curr_state[0] - 1)
+                next_state[1] = min(self.curr_state[1] + 1, self.breadth - 1)
+            elif action == NE:
+                next_state[0] = min(self.curr_state[0] + 1, self.length - 1)
+                next_state[1] = min(self.curr_state[1] + 1, self.breadth - 1)
+            elif action == SE:
+                next_state[0] = min(self.curr_state[0] + 1, self.length - 1)
+                next_state[1] = max(0, self.curr_state[1] - 1)
+            elif action == SW:
+                next_state[0] = max(0, self.curr_state[0] - 1)
+                next_state[1] = max(0, self.curr_state[1] - 1)
 
         curr_wind = self.wind[self.curr_state[0]]
         next_state[1] = min(next_state[1] + curr_wind, self.breadth-1)
@@ -83,13 +97,13 @@ class WindyGrid:
 
         self.curr_state = next_state
         self.num_steps += 1
-        self.history.append(self.curr_state)
+        self.history.append((action, self.curr_state))
 
         return (next_state, reward, self.done)
 
     def reset(self):
         self.curr_state = self.start
-        self.history = [self.curr_state]
+        self.history = [(None, self.curr_state)]
         self.num_steps = 0
         self.done = False
         return self.curr_state

@@ -3,6 +3,7 @@ from pprint import pprint
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -71,13 +72,24 @@ class SarsaAgent:
         time_steps = []
         episodes = []
         total_time = 0
+
+        min_steps = 100
+        min_step_move = None
+
         for i in range(num_episodes):
             self._run_episode()
             total_time += self.env.num_steps
             time_steps.append(total_time)
             episodes.append(i + 1)
+
+            if self.env.num_steps < min_steps:
+                min_steps = self.env.num_steps
+                min_step_move = deepcopy(self.env.history)
+
             if i % 20 == 0:
                 logger.info("episode: %d, steps: %d, total_time: %d" % (i + 1, self.env.num_steps, total_time))
+
+        print(min_steps, min_step_move)
 
         plt.plot(time_steps, episodes)
         plt.show()
