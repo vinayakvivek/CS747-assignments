@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from copy import deepcopy
 import logging
-from utils import LEFT, RIGHT, DOWN, UP
+from utils import W, N, E, S
 
 
 logger = logging.getLogger(__name__)
@@ -34,13 +34,22 @@ class WindyGrid:
 
         self.length = data["size"][0]
         self.breadth = data["size"][1]
-        self.max_steps = int(data["max_steps"])
+        self.king_move = data["king_move"]
 
         self.start = data["start"]
         self.goal = data["goal"]
         self.wind = data["wind"]
 
         self.reset()
+
+    def get_num_states(self):
+        return self.length * self.breadth
+
+    def get_num_actions(self):
+        if not self.king_move:
+            return 4
+        else:
+            return 8
 
     def step(self, action):
         """
@@ -54,13 +63,13 @@ class WindyGrid:
 
         next_state = deepcopy(self.curr_state)
 
-        if action == LEFT and self.curr_state[0] > 0:
+        if action == W and self.curr_state[0] > 0:
             next_state[0] -= 1
-        elif action == RIGHT and (self.curr_state[0] + 1) < self.length:
+        elif action == N and (self.curr_state[0] + 1) < self.length:
             next_state[0] += 1
-        elif action == DOWN and self.curr_state[1] > 0:
+        elif action == E and self.curr_state[1] > 0:
             next_state[1] -= 1
-        elif action == UP and (self.curr_state[1] + 1) < self.breadth:
+        elif action == S and (self.curr_state[1] + 1) < self.breadth:
             next_state[1] += 1
 
         curr_wind = self.wind[self.curr_state[0]]
@@ -74,9 +83,6 @@ class WindyGrid:
 
         self.curr_state = next_state
         self.num_steps += 1
-
-        # if self.num_steps >= self.max_steps:
-        #     self.done = True
         self.history.append(self.curr_state)
 
         return (next_state, reward, self.done)

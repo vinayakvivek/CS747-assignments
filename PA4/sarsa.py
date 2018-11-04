@@ -2,9 +2,7 @@ from windy_grid import WindyGrid
 from pprint import pprint
 import numpy as np
 import logging
-from copy import deepcopy
-from utils import LEFT, RIGHT, DOWN, UP
-
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -28,8 +26,9 @@ class SarsaAgent:
         self.gamma = gamma
         self.epsilon = epsilon
 
-        self.num_states = self.env.length * self.env.breadth
-        self.Q = dict([(x, [0, 0, 0, 0]) for x in range(self.num_states)])
+        self.num_states = self.env.get_num_states()
+        self.num_actions = self.env.get_num_actions()
+        self.Q = dict([(x, [0 for a in range(self.num_actions)]) for x in range(self.num_states)])
 
     def _decode_state(self, state):
         return (state[1] * self.env.length + state[0])
@@ -40,7 +39,7 @@ class SarsaAgent:
             return np.argmax(self.Q[self._decode_state(state)])
         else:
             logger.debug("exploring: random action")
-            return np.random.choice(4, 1)[0]
+            return np.random.choice(self.num_actions, 1)[0]
 
     def _run_episode(self):
         state = self.env.reset()
@@ -69,11 +68,19 @@ class SarsaAgent:
             prev_action = action
 
     def run(self, num_episodes=100):
-        time_steps = 0
+        time_steps = []
+        episodes = []
+        total_time = 0
         for i in range(num_episodes):
             self._run_episode()
-            time_steps += self.env.num_steps
-            logger.info("episode: %d, steps: %d, total_time: %d" % (i + 1, self.env.num_steps, time_steps))
+            total_time += self.env.num_steps
+            time_steps.append(total_time)
+            episodes.append(i + 1)
+            if i % 20 == 0:
+                logger.info("episode: %d, steps: %d, total_time: %d" % (i + 1, self.env.num_steps, total_time))
+
+        plt.plot(time_steps, episodes)
+        plt.show()
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-LEFT = 0
-UP = 1
-RIGHT = 2
-DOWN = 3
+W = 0
+N = 1
+E = 2
+S = 3
