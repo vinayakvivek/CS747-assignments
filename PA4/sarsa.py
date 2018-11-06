@@ -4,6 +4,8 @@ import numpy as np
 import logging
 import matplotlib.pyplot as plt
 from copy import deepcopy
+import argparse
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -82,7 +84,7 @@ class SarsaAgent:
             time_steps.append(total_time)
             episodes.append(i + 1)
 
-            if self.env.num_steps < min_steps:
+            if self.env.num_steps <= min_steps:
                 min_steps = self.env.num_steps
                 min_step_move = deepcopy(self.env.history)
 
@@ -97,8 +99,34 @@ class SarsaAgent:
 
 if __name__ == '__main__':
 
-    env_file = 'sample_env.json'
-    env = WindyGrid(env_file)
-    agent = SarsaAgent(env, 0.5, 1, 0.01)
+    parser = argparse.ArgumentParser(description='MDP parser and solver.')
+    parser.add_argument('--env',
+                        metavar='E',
+                        help='path to environment description file')
+    parser.add_argument('--alpha',
+                        metavar='𝛼',
+                        help='learning rate',
+                        type=float,
+                        default=0.5)
+    parser.add_argument('--gamma',
+                        metavar='𝛾',
+                        help='discount factor',
+                        type=float,
+                        default=1)
+    parser.add_argument('--epsilon',
+                        metavar='𝜀',
+                        help='exploration rate',
+                        type=float,
+                        default=0.01)
+    parser.add_argument('--episodes',
+                        metavar='N',
+                        help='number of episodes to run',
+                        type=int,
+                        default=200)
+    args = parser.parse_args()
 
-    agent.run(200)
+    env_file = args.env
+    env = WindyGrid(env_file)
+    agent = SarsaAgent(env, args.alpha, args.gamma, args.epsilon)
+
+    agent.run(args.episodes)
