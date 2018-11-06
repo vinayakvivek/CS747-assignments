@@ -1,16 +1,16 @@
 import json
-from enum import Enum
 from copy import deepcopy
 import logging
 from utils import W, N, E, S, NE, NW, SE, SW
 import numpy as np
+from utils import LOG_LEVEL, num_to_dir
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(LOG_LEVEL)
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+ch.setLevel(LOG_LEVEL)
 formatter = logging.Formatter(
     fmt='[%(levelname)s][%(asctime)s]: %(message)s',
     datefmt='%H:%M:%S'
@@ -33,6 +33,8 @@ class WindyGrid:
         with open(env_file) as f:
             data = json.load(f)
 
+        logger.info('initilizing Windy GridWorld..')
+
         self.length = data["size"][0]
         self.breadth = data["size"][1]
         self.king_move = data["king_move"]
@@ -41,6 +43,10 @@ class WindyGrid:
         self.start = data["start"]
         self.goal = data["goal"]
         self.wind = data["wind"]
+
+        logger.info('size: (%d, %d)' % (self.length, self.breadth))
+        logger.info('king\'s move allowed?: %r' % (self.king_move))
+        logger.info('stochastic wind?: %r' % (self.stochastic))
 
         self.reset()
 
@@ -103,7 +109,7 @@ class WindyGrid:
 
         self.curr_state = next_state
         self.num_steps += 1
-        self.history.append((action, self.curr_state))
+        self.history.append((num_to_dir[action], self.curr_state))
 
         return (next_state, reward, self.done)
 
@@ -119,7 +125,7 @@ if __name__ == '__main__':
     env_file = 'sample_env.json'
     env = WindyGrid(env_file)
 
-    print(LEFT)
+    print(W)
 
     # for i in range(9):
     #     s, r, d = env.step(RIGHT)

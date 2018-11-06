@@ -1,24 +1,37 @@
 from windy_grid import WindyGrid
-from pprint import pprint
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import argparse
+import os
+import sys
+from utils import PLOT_DIR, LOG_DIR, LOG_LEVEL
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(LOG_LEVEL)
+os.makedirs(PLOT_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    fmt='[%(levelname)s][%(asctime)s]: %(message)s',
-    datefmt='%H:%M:%S'
-)
-ch.setFormatter(formatter)
 
-logger.addHandler(ch)
+def setup_logger(args):
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.ERROR)
+    ch.setFormatter(
+        logging.Formatter(
+            fmt='[%(levelname)s][%(asctime)s]: %(message)s',
+            datefmt='%H:%M:%S'
+        ))
+    logger.addHandler(ch)
+
+    env_name = os.path.splitext(os.path.basename(args.env))[0]
+    file_name = "%s_%.2f_%.2f_%d.csv" % (
+        env_name, args.alpha, args.gamma, args.episodes)
+    fh = logging.FileHandler(filename=os.path.join(LOG_DIR, file_name))
+    fh.setLevel(LOG_LEVEL)
+    fh.setFormatter(logging.Formatter(fmt='%(message)s'))
+    logger.addHandler(fh)
 
 
 class SarsaAgent:
@@ -31,7 +44,8 @@ class SarsaAgent:
 
         self.num_states = self.env.get_num_states()
         self.num_actions = self.env.get_num_actions()
-        self.Q = dict([(x, [0 for a in range(self.num_actions)]) for x in range(self.num_states)])
+        self.Q = dict([(x, [0 for a in range(self.num_actions)])
+                       for x in range(self.num_states)])
 
     def _decode_state(self, state):
         return (state[1] * self.env.length + state[0])
@@ -54,7 +68,8 @@ class SarsaAgent:
 
         while not done:
             state, reward, done = self.env.step(action)
-            logger.debug("state: %s, reward: %f, done: %s" % (str(state), reward, str(done)))
+            logger.debug("state: %s, reward: %f, done: %s" % (
+                str(state), reward, str(done)))
             action = self._get_action(state)
 
             if prev_state is not None:
@@ -63,20 +78,25 @@ class SarsaAgent:
                 if done:
                     q_new += self.alpha * (reward - q_old)
                 else:
-                    q_new += self.alpha * (reward + self.gamma * self.Q[self._decode_state(state)][action] - q_old)
+                    q_new += self.alpha * (
+                        reward +
+                        self.gamma * self.Q[self._decode_state(state)][action]
+                        - q_old)
 
                 self.Q[self._decode_state(prev_state)][prev_action] = q_new
 
             prev_state = state
             prev_action = action
 
-    def run(self, num_episodes=100):
+    def run(self, num_episodes=100, plot=False):
         time_steps = []
         episodes = []
         total_time = 0
 
         min_steps = 100
         min_step_move = None
+
+        print('')
 
         for i in range(num_episodes):
             self._run_episode()
@@ -88,13 +108,27 @@ class SarsaAgent:
                 min_steps = self.env.num_steps
                 min_step_move = deepcopy(self.env.history)
 
-            if i % 20 == 0:
-                logger.info("episode: %d, steps: %d, total_time: %d" % (i + 1, self.env.num_steps, total_time))
+            logger.info("%d, %d, %d" % (i + 1, self.env.num_steps, total_time))
 
-        print(min_steps, min_step_move)
+            sys.stdout.write("\rrunning episode: %d/%d" % (i + 1, num_episodes))
+            sys.stdout.flush()
 
-        plt.plot(time_steps, episodes)
-        plt.show()
+            # if i % 20 == 0:
+            #     logger.info("episode: %d, steps: %d, total_time: %d" % (
+            #         i + 1, self.env.num_steps, total_time))
+
+        print('\n')
+        print("minimum number of steps: %d\n" % (min_steps))
+        print("best path (list of (action, next-state)):\n %s\n" % (str(min_step_move)))
+
+        if plot:
+            env_name = os.path.splitext(os.path.basename(self.env.env_file))[0]
+            plot_name = "%s_%.2f_%.2f_%d.png" % (
+                env_name, self.alpha, self.gamma, num_episodes)
+            plt.plot(time_steps, episodes)
+            plt.xlabel('Time steps')
+            plt.ylabel('Episodes')
+            plt.savefig(os.path.join(PLOT_DIR, plot_name))
 
 
 if __name__ == '__main__':
@@ -123,10 +157,15 @@ if __name__ == '__main__':
                         help='number of episodes to run',
                         type=int,
                         default=200)
+    parser.add_argument('--plot',
+                        help='to plot the graph.',
+                        action='store_true')
     args = parser.parse_args()
+
+    setup_logger(args)
 
     env_file = args.env
     env = WindyGrid(env_file)
     agent = SarsaAgent(env, args.alpha, args.gamma, args.epsilon)
 
-    agent.run(args.episodes)
+    agent.run(args.episodes, plot=args.plot)
