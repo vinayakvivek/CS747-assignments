@@ -3,6 +3,7 @@ from enum import Enum
 from copy import deepcopy
 import logging
 from utils import W, N, E, S, NE, NW, SE, SW
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class WindyGrid:
         self.length = data["size"][0]
         self.breadth = data["size"][1]
         self.king_move = data["king_move"]
+        self.stochastic = data["stochastic"]
 
         self.start = data["start"]
         self.goal = data["goal"]
@@ -87,7 +89,11 @@ class WindyGrid:
                 next_state[1] = max(0, self.curr_state[1] - 1)
 
         curr_wind = self.wind[self.curr_state[0]]
+        if self.stochastic:
+            curr_wind += (np.random.randint(3) - 1)
+
         next_state[1] = min(next_state[1] + curr_wind, self.breadth-1)
+        next_state[1] = max(0, next_state[1])
 
         reward = -1
 
