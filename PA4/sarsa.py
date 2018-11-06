@@ -133,9 +133,10 @@ class SarsaAgent:
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='MDP parser and solver.')
+    parser = argparse.ArgumentParser(description='SARSA experiment')
     parser.add_argument('--env',
                         metavar='E',
+                        required=True,
                         help='path to environment description file')
     parser.add_argument('--alpha',
                         metavar='𝛼',
