@@ -11,7 +11,6 @@ from utils import PLOT_DIR, LOG_DIR, LOG_LEVEL
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOG_LEVEL)
-os.makedirs(PLOT_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 
 
@@ -25,10 +24,12 @@ def setup_logger(args):
         ))
     logger.addHandler(ch)
 
-    env_name = os.path.splitext(os.path.basename(args.env))[0]
-    file_name = "%s_%.2f_%.2f_%d.csv" % (
-        env_name, args.alpha, args.gamma, args.episodes)
-    fh = logging.FileHandler(filename=os.path.join(LOG_DIR, file_name))
+    os.makedirs(args.logdir, exist_ok=True)
+    file_name = os.path.join(args.logdir, str(args.seed) + ".csv")
+    if os.path.exists(file_name):
+        os.remove(file_name)
+
+    fh = logging.FileHandler(filename=file_name)
     fh.setLevel(LOG_LEVEL)
     fh.setFormatter(logging.Formatter(fmt='%(message)s'))
     logger.addHandler(fh)
@@ -36,16 +37,18 @@ def setup_logger(args):
 
 class SarsaAgent:
 
-    def __init__(self, env, alpha, gamma, epsilon):
+    def __init__(self, env, alpha, gamma, epsilon, seed):
         self.env = env
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        self.seed = seed
 
         self.num_states = self.env.get_num_states()
         self.num_actions = self.env.get_num_actions()
         self.Q = dict([(x, [0 for a in range(self.num_actions)])
                        for x in range(self.num_states)])
+        np.random.seed(seed)
 
     def _decode_state(self, state):
         return (state[1] * self.env.length + state[0])
@@ -88,7 +91,7 @@ class SarsaAgent:
             prev_state = state
             prev_action = action
 
-    def run(self, num_episodes=100, plot=False):
+    def run(self, num_episodes=100):
         time_steps = []
         episodes = []
         total_time = 0
@@ -96,7 +99,7 @@ class SarsaAgent:
         min_steps = 100
         min_step_move = None
 
-        print('')
+        # print('')
 
         for i in range(num_episodes):
             self._run_episode()
@@ -113,22 +116,9 @@ class SarsaAgent:
             sys.stdout.write("\rrunning episode: %d/%d" % (i + 1, num_episodes))
             sys.stdout.flush()
 
-            # if i % 20 == 0:
-            #     logger.info("episode: %d, steps: %d, total_time: %d" % (
-            #         i + 1, self.env.num_steps, total_time))
-
-        print('\n')
-        print("minimum number of steps: %d\n" % (min_steps))
-        print("best path (list of (action, next-state)):\n %s\n" % (str(min_step_move)))
-
-        if plot:
-            env_name = os.path.splitext(os.path.basename(self.env.env_file))[0]
-            plot_name = "%s_%.2f_%.2f_%d.png" % (
-                env_name, self.alpha, self.gamma, num_episodes)
-            plt.plot(time_steps, episodes)
-            plt.xlabel('Time steps')
-            plt.ylabel('Episodes')
-            plt.savefig(os.path.join(PLOT_DIR, plot_name))
+        # print('\n')
+        # print("minimum number of steps: %d\n" % (min_steps))
+        # print("best path (list of (action, next-state)):\n %s\n" % (str(min_step_move)))
 
 
 if __name__ == '__main__':
@@ -138,6 +128,11 @@ if __name__ == '__main__':
                         metavar='E',
                         required=True,
                         help='path to environment description file')
+    parser.add_argument('--logdir',
+                        metavar='L',
+                        help='log directory',
+                        type=str,
+                        required=True)
     parser.add_argument('--alpha',
                         metavar='𝛼',
                         help='learning rate',
@@ -153,20 +148,23 @@ if __name__ == '__main__':
                         help='exploration rate',
                         type=float,
                         default=0.01)
+    parser.add_argument('--seed',
+                        metavar='r',
+                        help='random seed',
+                        type=int,
+                        default=1)
     parser.add_argument('--episodes',
                         metavar='N',
                         help='number of episodes to run',
                         type=int,
                         default=200)
-    parser.add_argument('--plot',
-                        help='to plot the graph.',
-                        action='store_true')
+
     args = parser.parse_args()
 
     setup_logger(args)
 
     env_file = args.env
     env = WindyGrid(env_file)
-    agent = SarsaAgent(env, args.alpha, args.gamma, args.epsilon)
+    agent = SarsaAgent(env, args.alpha, args.gamma, args.epsilon, args.seed)
 
-    agent.run(args.episodes, plot=args.plot)
+    agent.run(args.episodes)

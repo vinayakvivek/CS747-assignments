@@ -33,7 +33,7 @@ class WindyGrid:
         with open(env_file) as f:
             data = json.load(f)
 
-        logger.info('initilizing Windy GridWorld..')
+        logger.debug('initilizing Windy GridWorld..')
 
         self.length = data["size"][0]
         self.breadth = data["size"][1]
@@ -44,9 +44,9 @@ class WindyGrid:
         self.goal = data["goal"]
         self.wind = data["wind"]
 
-        logger.info('size: (%d, %d)' % (self.length, self.breadth))
-        logger.info('king\'s move allowed?: %r' % (self.king_move))
-        logger.info('stochastic wind?: %r' % (self.stochastic))
+        logger.debug('size: (%d, %d)' % (self.length, self.breadth))
+        logger.debug('king\'s move allowed?: %r' % (self.king_move))
+        logger.debug('stochastic wind?: %r' % (self.stochastic))
 
         self.reset()
 
