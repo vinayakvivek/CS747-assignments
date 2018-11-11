@@ -11,11 +11,12 @@ Objective of this assignment is to test a SARSA reinforcement learning agent in 
     - takes in following command line arguments
         ```bash
         --env E       path to environment description file
+        --logdir L    log directory
         --alpha 𝛼     learning rate (default: 0.5)
         --gamma 𝛾     discount factor (default: 1)
         --epsilon 𝜀   exploration rate (default: 0.01)
+        --seed r      random seed (default: 1)
         --episodes N  number of episodes to run (default: 200)
-        --plot        to plot the graph.
         ```
 - `envs/*`: environment description files (explained in next section)
 - `logs/*`: experiment log files. csv files with each row as <episode, steps, cumulative_steps>
@@ -35,12 +36,15 @@ Objective of this assignment is to test a SARSA reinforcement learning agent in 
     ```
 
 ### Running experiments
-- usage:
+- `run.sh` takes in six arguments.
+    ```bash
+    ./run.sh <env_path> <log_dir> <alpha> <epsilon> <num_episodes> <num_runs>
     ```
-    python3 sarsa.py [-h] --env E [--alpha 𝛼] [--gamma 𝛾] [--epsilon 𝜀]
-                [--episodes N] [--plot]
-    ```
+    - `env_path`: path to environment description file
+    - `log_dir`: directory to which log files should be written
+    - `num_runs`: runs with separate random seeds
 - example usage:
     ```bash
-    python3 sarsa.py --env envs/env0.json --alpha 0.5 --gamma 1 --epsilon 0.01 --episodes 20 --plot
+    ./run.sh envs/env3.json logs/env3 0.5 0.01 200 10
     ```
+- after running this command, log can be found in specified `log_dir` and corresponding plot in `plots/`
