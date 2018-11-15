@@ -18,7 +18,6 @@ def plot(log_dir):
         num_episodes = len(list(reader))
 
     time_steps = np.zeros(num_episodes)
-    print(num_episodes)
 
     for file_path in log_files:
         with open(file_path, 'r') as f:

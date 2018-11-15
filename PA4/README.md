@@ -45,6 +45,13 @@ Objective of this assignment is to test a SARSA reinforcement learning agent in 
     - `num_runs`: runs with separate random seeds
 - example usage:
     ```bash
-    ./run.sh envs/env3.json logs/env3 0.5 0.01 200 10
+    ./run.sh envs/env0.json logs/env0 0.5 0.01 200 10
     ```
 - after running this command, log can be found in specified `log_dir` and corresponding plot in `plots/`
+- use this script to run experiment each of the four environments.
+    ```bash
+    ./run.sh envs/env0.json logs/env0 0.5 0.01 200 10
+    ./run.sh envs/env1.json logs/env1 0.5 0.01 200 10
+    ./run.sh envs/env2.json logs/env2 0.5 0.01 200 10
+    ./run.sh envs/env3.json logs/env3 0.5 0.01 200 10
+    ```
